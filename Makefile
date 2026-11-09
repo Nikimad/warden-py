@@ -16,6 +16,6 @@ format-check:
 	python -m uv run ruff format . --check
 
 typecheck:
-	python -m uv run mypy src
+	python -m uv run mypy
 
 check: lint format-check typecheck test
