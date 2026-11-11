@@ -1,7 +1,7 @@
 [project]
 name = "warden-py"
 version = "0.1.0"
-description = "Add your description here"
+description = "Personal RSS reader with a daily digest"
 readme = "README.md"
 authors = [
     { name = "Nikita Savelev", email = "pybepod@gmail.com" }

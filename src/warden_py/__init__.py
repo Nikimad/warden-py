@@ -1,11 +1,14 @@
 import asyncio
 import sys
 
-from .checker import check
-from .formatter import format_result
+from .fetch import fetch
 
 
 def main() -> None:
     url = sys.argv[1]
-    result = asyncio.run(check(url))
-    print(format_result(result))
+    result = asyncio.run(fetch(url))
+
+    if result.content is None:
+        print(f"ERROR | {url} | {result.error}")
+    else:
+        print(f"OK | {url} | {result.status_code} | {len(result.content)} bytes")
