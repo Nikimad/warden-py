@@ -1,14 +1,16 @@
 [project]
 name = "warden-py"
 version = "0.1.0"
-description = "Add your description here"
+description = "Personal RSS reader with a daily digest"
 readme = "README.md"
 authors = [
     { name = "Nikita Savelev", email = "pybepod@gmail.com" }
 ]
 requires-python = ">=3.14"
 dependencies = [
+    "feedparser>=6.0.14",
     "httpx>=0.28.1",
+    "pyyaml>=6.0.3",
 ]
 
 [project.scripts]
@@ -26,11 +28,16 @@ dev = [
     "pytest-asyncio>=1.4.1.post1",
     "respx>=0.23.1",
     "ruff>=0.17.4",
+    "types-pyyaml>=6.0.12.20261111",
 ]
 
 [tool.mypy]
 strict = true
 files = ["src", "tests"]
+
+[[tool.mypy.overrides]]
+module = ["feedparser", "feedparser.*"]
+ignore_missing_imports = true
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

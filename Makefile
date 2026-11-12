@@ -1,7 +1,10 @@
-.PHONY: test lint lint-fix format format-check typecheck check
+.PHONY: test test-one lint lint-fix format format-check typecheck check
 
 test:
 	python -m uv run pytest -v
+
+test-one:
+	python -m uv run pytest -v $(T)
 
 lint:
 	python -m uv run ruff check .

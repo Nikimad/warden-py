@@ -120,6 +120,27 @@ wheels = [
 ]
 
 [[package]]
+name = "feedparser"
+version = "6.0.14"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "feedparser-sgmllib" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/37/8a/a53da4a77352045d277978a2df322d5379369f9deb1707178899ff7e1121/feedparser-6.0.14.tar.gz", hash = "sha256:088679b0c4b543ee211a820dd544698c76a402122eae7473c04a43425f283d06", size = 286108, upload-time = "2026-07-30T14:07:40.491Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/7f/61/f04912e63702e73fb2a378f9c0a1ad9eb17a334a11a6b3fe1daa593903c2/feedparser-6.0.14-py3-none-any.whl", hash = "sha256:e35e3f760151b0c3b22cac9684155cae186a233e16c49bcbc6c49e91e3131137", size = 80668, upload-time = "2026-07-30T14:07:39.175Z" },
+]
+
+[[package]]
+name = "feedparser-sgmllib"
+version = "2.1.0"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/da/df/38596299216e5c22d60ed7f97902bb2bc72cfb95f732400f4fa976fd2e62/feedparser_sgmllib-2.1.0.tar.gz", hash = "sha256:61facf2918c4389b5b00714f76c5e03431ffcd94cd1f51d657edd6cd7c396579", size = 26845, upload-time = "2026-08-02T21:27:53.891Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/85/a0/79a31f898092e145bd66e2b338fb0656979acb2bbbcae8220940fbfcd820/feedparser_sgmllib-2.1.0-py3-none-any.whl", hash = "sha256:2cab2d43b95a954f920f18aebce7a4dbbb3f539780b127e2aa114f579821e01d", size = 11652, upload-time = "2026-08-02T21:27:52.894Z" },
+]
+
+[[package]]
 name = "filelock"
 version = "4.2.9"
 source = { registry = "https://pypi.org/simple" }
@@ -487,6 +508,15 @@ wheels = [
 ]
 
 [[package]]
+name = "types-pyyaml"
+version = "6.0.12.20261111"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/80/49/96041fdb54de08a5b47bcfcbb4881873b25bae367d1e4dec79d19dfeb84b/types_pyyaml-6.0.12.20261111.tar.gz", hash = "sha256:c511f563eaf820b948c4ff6f43fe0b9d48b227be442a69058d9f68f139cae1fb", size = 18970, upload-time = "2026-11-11T08:32:30.036Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/54/ec/b23dd6911cd0e870e9396b48929ef7c92b58a551c3651d184bb573f371eb/types_pyyaml-6.0.12.20261111-py3-none-any.whl", hash = "sha256:b7e46cbc847dc235305e95e3e3570792d72e6ccf64bf9b831306f48da490322d", size = 21317, upload-time = "2026-11-11T08:32:29.148Z" },
+]
+
+[[package]]
 name = "typing-extensions"
 version = "4.16.0"
 source = { registry = "https://pypi.org/simple" }
@@ -516,7 +546,9 @@ name = "warden-py"
 version = "0.1.0"
 source = { editable = "." }
 dependencies = [
+    { name = "feedparser" },
     { name = "httpx" },
+    { name = "pyyaml" },
 ]
 
 [package.dev-dependencies]
@@ -527,10 +559,15 @@ dev = [
     { name = "pytest-asyncio" },
     { name = "respx" },
     { name = "ruff" },
+    { name = "types-pyyaml" },
 ]
 
 [package.metadata]
-requires-dist = [{ name = "httpx", specifier = ">=0.28.1" }]
+requires-dist = [
+    { name = "feedparser", specifier = ">=6.0.14" },
+    { name = "httpx", specifier = ">=0.28.1" },
+    { name = "pyyaml", specifier = ">=6.0.3" },
+]
 
 [package.metadata.requires-dev]
 dev = [
@@ -540,4 +577,5 @@ dev = [
     { name = "pytest-asyncio", specifier = ">=1.4.1.post1" },
     { name = "respx", specifier = ">=0.23.1" },
     { name = "ruff", specifier = ">=0.17.4" },
+    { name = "types-pyyaml", specifier = ">=6.0.12.20261111" },
 ]
