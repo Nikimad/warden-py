@@ -1,41 +1,41 @@
+import asyncio
 from dataclasses import dataclass
 from datetime import datetime, timezone
 
 import httpx
 
-MAX_TIMEOUT_S = 8.0
-CONNECT_TIMEOUT_S = 3.0
-TIMEOUT = httpx.Timeout(MAX_TIMEOUT_S, connect=CONNECT_TIMEOUT_S)
-
-MAX_REDIRECTS = 10
+from .constants import MAX_REDIRECTS, TIMEOUT
 
 
 @dataclass(frozen=True)
-class FetchResult:
+class DownloadResult:
     url: str
-    fetched_at: datetime
+    downloaded_at: datetime
     content: bytes | None = None
     status_code: int | None = None
     error: str | None = None
 
 
-async def fetch(url: str) -> FetchResult:
+def create_client() -> httpx.AsyncClient:
+    return httpx.AsyncClient(timeout=TIMEOUT, follow_redirects=True, max_redirects=MAX_REDIRECTS)
+
+
+async def download_feed(client: httpx.AsyncClient, url: str) -> DownloadResult:
     status_code: int | None = None
     error: str | None = None
 
-    fetched_at = datetime.now(timezone.utc)
+    downloaded_at = datetime.now(timezone.utc)
 
     try:
-        async with httpx.AsyncClient(max_redirects=MAX_REDIRECTS) as client:
-            response = await client.get(url, timeout=TIMEOUT, follow_redirects=True)
-            response.raise_for_status()
+        response = await client.get(url)
+        response.raise_for_status()
 
-            return FetchResult(
-                url=url,
-                fetched_at=fetched_at,
-                content=response.content,
-                status_code=response.status_code,
-            )
+        return DownloadResult(
+            url=url,
+            downloaded_at=downloaded_at,
+            content=response.content,
+            status_code=response.status_code,
+        )
     except httpx.ConnectTimeout as exc:
         error = f"Connection timeout while requesting {exc.request.url}."
     except httpx.ReadTimeout as exc:
@@ -50,9 +50,15 @@ async def fetch(url: str) -> FetchResult:
         status_code = exc.response.status_code
         error = f"Error response {status_code} while requesting {exc.request.url}."
 
-    return FetchResult(
+    return DownloadResult(
         url=url,
-        fetched_at=fetched_at,
+        downloaded_at=downloaded_at,
         status_code=status_code,
         error=error,
     )
+
+
+async def download_feeds(urls: list[str]) -> list[DownloadResult]:
+    async with create_client() as client:
+        tasks = [download_feed(client, url) for url in urls]
+        return await asyncio.gather(*tasks)

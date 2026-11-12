@@ -1,14 +1,14 @@
 import asyncio
-import sys
 
-from .fetch import fetch
+from .config import load_feed_urls
+from .download import download_feeds
 
 
 def main() -> None:
-    url = sys.argv[1]
-    result = asyncio.run(fetch(url))
+    results = asyncio.run(download_feeds(load_feed_urls()))
 
-    if result.content is None:
-        print(f"ERROR | {url} | {result.error}")
-    else:
-        print(f"OK | {url} | {result.status_code} | {len(result.content)} bytes")
+    for result in results:
+        if result.content is None:
+            print(f"ERROR | {result.url} | {result.error}")
+        else:
+            print(f"OK | {result.url} | {result.status_code} | {len(result.content)} bytes")

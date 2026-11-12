@@ -1,10 +1,12 @@
+from collections.abc import AsyncIterator
 from datetime import timedelta
 
 import httpx
 import pytest
 from respx import MockRouter
 
-from warden_py.fetch import MAX_REDIRECTS, fetch
+from warden_py.constants import MAX_REDIRECTS
+from warden_py.download import create_client, download_feed
 
 URL = "https://example.test/feed.xml"
 HTTP_URL = "http://example.test/feed.xml"
@@ -23,22 +25,30 @@ NETWORK_FAILURES = [
 ]
 
 
-async def test_fetch_success(respx_mock: MockRouter) -> None:
+@pytest.fixture
+async def client() -> AsyncIterator[httpx.AsyncClient]:
+    async with create_client() as client:
+        yield client
+
+
+async def test_download_feed_success(respx_mock: MockRouter, client: httpx.AsyncClient) -> None:
     respx_mock.get(URL).mock(return_value=httpx.Response(200, content=FEED_BODY))
 
-    result = await fetch(URL)
+    result = await download_feed(client, URL)
     assert result.content == FEED_BODY
     assert result.status_code == 200
     assert result.url == URL
     assert result.error is None
-    assert result.fetched_at.utcoffset() == timedelta(0)
+    assert result.downloaded_at.utcoffset() == timedelta(0)
 
 
 @pytest.mark.parametrize("status_code", BAD_STATUS_CODES)
-async def test_fetch_bad_status_code(respx_mock: MockRouter, status_code: int) -> None:
+async def test_download_feed_bad_status_code(
+    respx_mock: MockRouter, client: httpx.AsyncClient, status_code: int
+) -> None:
     respx_mock.get(URL).mock(return_value=httpx.Response(status_code))
 
-    result = await fetch(URL)
+    result = await download_feed(client, URL)
     assert result.content is None
     assert result.status_code == status_code
     assert result.error is not None
@@ -46,12 +56,15 @@ async def test_fetch_bad_status_code(respx_mock: MockRouter, status_code: int) -
 
 
 @pytest.mark.parametrize(("exception", "error_fragment"), NETWORK_FAILURES)
-async def test_fetch_network_failure(
-    respx_mock: MockRouter, exception: type[httpx.RequestError], error_fragment: str
+async def test_download_feed_network_failure(
+    respx_mock: MockRouter,
+    client: httpx.AsyncClient,
+    exception: type[httpx.RequestError],
+    error_fragment: str,
 ) -> None:
     respx_mock.get(URL).mock(side_effect=exception)
 
-    result = await fetch(URL)
+    result = await download_feed(client, URL)
     assert result.content is None
     assert result.status_code is None
     assert result.error is not None
@@ -59,13 +72,15 @@ async def test_fetch_network_failure(
 
 
 @pytest.mark.parametrize("redirect_status_code", REDIRECT_STATUS_CODES)
-async def test_fetch_redirect(respx_mock: MockRouter, redirect_status_code: int) -> None:
+async def test_download_feed_redirect(
+    respx_mock: MockRouter, client: httpx.AsyncClient, redirect_status_code: int
+) -> None:
     respx_mock.get(HTTP_URL).mock(
         return_value=httpx.Response(redirect_status_code, headers={"Location": URL})
     )
     respx_mock.get(URL).mock(return_value=httpx.Response(200, content=FEED_BODY))
 
-    result = await fetch(HTTP_URL)
+    result = await download_feed(client, HTTP_URL)
     assert result.content == FEED_BODY
     assert result.status_code == 200
     assert result.url == HTTP_URL
@@ -73,13 +88,15 @@ async def test_fetch_redirect(respx_mock: MockRouter, redirect_status_code: int)
 
 
 @pytest.mark.parametrize("redirect_status_code", REDIRECT_STATUS_CODES)
-async def test_fetch_redirect_not_found(respx_mock: MockRouter, redirect_status_code: int) -> None:
+async def test_download_feed_redirect_not_found(
+    respx_mock: MockRouter, client: httpx.AsyncClient, redirect_status_code: int
+) -> None:
     respx_mock.get(HTTP_URL).mock(
         return_value=httpx.Response(redirect_status_code, headers={"Location": URL})
     )
     respx_mock.get(URL).mock(return_value=httpx.Response(404))
 
-    result = await fetch(HTTP_URL)
+    result = await download_feed(client, HTTP_URL)
     assert result.content is None
     assert result.status_code == 404
     assert result.url == HTTP_URL
@@ -88,12 +105,14 @@ async def test_fetch_redirect_not_found(respx_mock: MockRouter, redirect_status_
 
 
 @pytest.mark.parametrize("redirect_status_code", REDIRECT_STATUS_CODES)
-async def test_fetch_redirect_loop(respx_mock: MockRouter, redirect_status_code: int) -> None:
+async def test_download_feed_redirect_loop(
+    respx_mock: MockRouter, client: httpx.AsyncClient, redirect_status_code: int
+) -> None:
     route = respx_mock.get(LOOP_URL).mock(
         return_value=httpx.Response(redirect_status_code, headers={"Location": LOOP_URL})
     )
 
-    result = await fetch(LOOP_URL)
+    result = await download_feed(client, LOOP_URL)
 
     assert result.content is None
     assert result.status_code is None
