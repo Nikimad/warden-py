@@ -1,5 +1,7 @@
 import asyncio
 
+from warden_py.parser import parse_feed
+
 from .config import load_feed_urls
 from .download import download_feeds
 
@@ -11,4 +13,5 @@ def main() -> None:
         if result.content is None:
             print(f"ERROR | {result.url} | {result.error}")
         else:
-            print(f"OK | {result.url} | {result.status_code} | {len(result.content)} bytes")
+            feed = parse_feed(result.content)
+            print(feed)
